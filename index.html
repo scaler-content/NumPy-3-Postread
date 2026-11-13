@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NumPy 3 · Matrix Operations — Post-read</title>
+<style>
+:root {
+  --bg: #0d0f1a;
+  --surface: #131627;
+  --surface2: #1a1e35;
+  --surface3: #1f2440;
+  --border: #2a2f50;
+  --border2: #353b60;
+  --accent: #4f6ef7;
+  --accent2: #6b84ff;
+  --accent-soft: rgba(79,110,247,0.12);
+  --accent-line: rgba(79,110,247,0.25);
+  --yellow: #f0c24b;
+  --yellow-soft: rgba(240,194,75,0.12);
+  --green: #34d399;
+  --green-soft: rgba(52,211,153,0.1);
+  --red: #f87171;
+  --red-soft: rgba(248,113,113,0.1);
+  --purple: #a78bfa;
+  --purple-soft: rgba(167,139,250,0.1);
+  --text: #e2e6f3;
+  --text2: #9099b8;
+  --text3: #5a6080;
+  --code-bg: #080b18;
+  --c-kw: #8ab4ff;
+  --c-str: #9ae6b4;
+  --c-num: #f6c177;
+  --c-comment: #5a6b90;
+  --c-bi: #c4a9ff;
+  --c-fn: #7dd3fc;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── layout ── */
+.page { max-width: 860px; margin: 0 auto; padding: 0 20px 120px; }
+
+/* ── header ── */
+.hdr {
+  padding: 56px 0 44px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0;
+}
+.hdr-eyebrow {
+  font-size: 11px; font-weight: 700; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--accent2); margin-bottom: 14px;
+  display: flex; align-items: center; gap: 10px;
+}
+.hdr-eyebrow::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.hdr h1 {
+  font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 800;
+  line-height: 1.15; color: #fff; margin-bottom: 12px;
+}
+.hdr-desc { font-size: .95rem; color: var(--text2); max-width: 520px; margin-bottom: 20px; }
+.hdr-flow {
+  display: flex; gap: 0; flex-wrap: wrap;
+}
+.hdr-flow-step {
+  background: var(--surface2); border: 1px solid var(--border);
+  padding: 7px 16px; font-size: .78rem; font-weight: 600; color: var(--text2);
+  display: flex; align-items: center; gap: 8px;
+}
+.hdr-flow-step:first-child { border-radius: 8px 0 0 8px; }
+.hdr-flow-step:last-child { border-radius: 0 8px 8px 0; border-left: none; }
+.hdr-flow-step + .hdr-flow-step { border-left: none; }
+.hdr-flow-step .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.hdr-flow-step.active { background: var(--accent-soft); border-color: var(--accent-line); color: var(--accent2); }
+.hdr-flow-step.active .dot { background: var(--green); }
+
+/* ── toc ── */
+.toc {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1px; background: var(--border); border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden; margin: 32px 0;
+}
+.toc-item {
+  background: var(--surface); padding: 14px 18px;
+  display: flex; align-items: center; gap: 12px;
+  text-decoration: none; color: var(--text2);
+  font-size: .82rem; transition: background .15s;
+}
+.toc-item:hover { background: var(--surface2); color: var(--text); }
+.toc-num {
+  font-size: .68rem; font-weight: 800; color: var(--accent);
+  min-width: 24px; letter-spacing: .04em;
+}
+
+/* ── sections ── */
+.sec {
+  border-top: 1px solid var(--border);
+  padding: 48px 0 40px;
+}
+.sec-num {
+  font-size: .68rem; font-weight: 800; letter-spacing: .12em;
+  color: var(--accent); margin-bottom: 8px; text-transform: uppercase;
+}
+.sec h2 {
+  font-size: 1.35rem; font-weight: 800; color: #fff; margin-bottom: 6px;
+}
+.sec-sub {
+  font-size: .88rem; color: var(--text2); margin-bottom: 28px;
+  padding-bottom: 20px; border-bottom: 1px solid var(--border);
+}
+.sec p { font-size: .92rem; color: var(--text); margin-bottom: 14px; line-height: 1.7; }
+.sec p:last-child { margin-bottom: 0; }
+
+/* ── code blocks ── */
+.code-block { margin: 20px 0; border-radius: 10px; overflow: hidden; }
+.code-head {
+  background: var(--surface2); padding: 9px 16px;
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+.code-lang {
+  font-size: .68rem; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--accent2);
+}
+.copy-btn {
+  background: none; border: 1px solid var(--border2); color: var(--text3);
+  font-size: .68rem; padding: 3px 10px; border-radius: 4px; cursor: pointer;
+  letter-spacing: .04em; font-weight: 600;
+  transition: all .15s;
+}
+.copy-btn:hover { border-color: var(--accent); color: var(--accent2); }
+.code-block pre {
+  background: var(--code-bg); margin: 0; padding: 16px 18px;
+  overflow-x: auto; line-height: 1.6; font-size: .82rem;
+  font-family: 'SF Mono', 'Fira Mono', Consolas, monospace;
+  color: #c8d0ea;
+}
+.out-block {
+  background: #05100a; border-top: 1px solid #0d2010;
+  padding: 12px 18px; font-family: 'SF Mono', 'Fira Mono', Consolas, monospace;
+  font-size: .82rem; color: var(--green); line-height: 1.55; white-space: pre;
+  overflow-x: auto;
+}
+.err-block {
+  background: #120505; border-top: 1px solid #2a0808;
+  padding: 12px 18px; font-family: 'SF Mono', 'Fira Mono', Consolas, monospace;
+  font-size: .82rem; color: var(--red); line-height: 1.55; white-space: pre;
+}
+
+/* ── callouts ── */
+.callout {
+  border-radius: 8px; padding: 14px 18px; margin: 18px 0;
+  font-size: .88rem; line-height: 1.6;
+}
+.callout-title {
+  font-size: .68rem; font-weight: 800; letter-spacing: .1em;
+  text-transform: uppercase; margin-bottom: 6px;
+}
+.callout.warn { background: rgba(240,194,75,.08); border-left: 3px solid var(--yellow); }
+.callout.warn .callout-title { color: var(--yellow); }
+.callout.info { background: var(--accent-soft); border-left: 3px solid var(--accent); }
+.callout.info .callout-title { color: var(--accent2); }
+.callout.good { background: var(--green-soft); border-left: 3px solid var(--green); }
+.callout.good .callout-title { color: var(--green); }
+.callout.spot { background: var(--purple-soft); border-left: 3px solid var(--purple); }
+.callout.spot .callout-title { color: var(--purple); }
+
+/* ── tables ── */
+.data-table { width: 100%; border-collapse: collapse; font-size: .83rem; margin: 16px 0; }
+.data-table th {
+  background: var(--surface2); color: var(--accent2); font-weight: 700;
+  padding: 9px 12px; text-align: left; border-bottom: 2px solid var(--border2);
+  font-size: .75rem; letter-spacing: .04em;
+}
+.data-table td {
+  padding: 8px 12px; border-bottom: 1px solid var(--border);
+  color: var(--text); vertical-align: top;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table code {
+  background: var(--accent-soft); color: var(--accent2);
+  padding: 1px 6px; border-radius: 3px; font-size: .78rem;
+  font-family: 'SF Mono', monospace;
+}
+.pill {
+  display: inline-block; padding: 2px 8px; border-radius: 50px;
+  font-size: .68rem; font-weight: 700; letter-spacing: .04em;
+}
+.pill-view { background: rgba(240,194,75,.15); color: var(--yellow); border: 1px solid rgba(240,194,75,.3); }
+.pill-copy { background: var(--green-soft); color: var(--green); border: 1px solid rgba(52,211,153,.3); }
+
+/* ── inline code ── */
+code {
+  background: var(--accent-soft); color: var(--accent2);
+  padding: 1px 6px; border-radius: 4px; font-size: .85em;
+  font-family: 'SF Mono', 'Fira Mono', Consolas, monospace;
+}
+
+/* ── two-col layout ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+@media (max-width: 600px) { .two-col { grid-template-columns: 1fr; } }
+
+/* ══════════════════════════════════════
+   INTERACTIVE DEMOS
+══════════════════════════════════════ */
+
+/* ── copy/view explorer ── */
+.demo-box {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden; margin: 24px 0;
+}
+.demo-head {
+  background: var(--surface2); padding: 12px 18px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+.demo-title { font-size: .78rem; font-weight: 700; color: var(--text2); letter-spacing: .04em; }
+.demo-badge {
+  font-size: .65rem; font-weight: 700; padding: 3px 10px;
+  border-radius: 50px; letter-spacing: .06em; text-transform: uppercase;
+}
+.demo-body { padding: 18px; }
+
+/* array visual */
+.arr-visual {
+  display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 14px; align-items: flex-start;
+}
+.arr-label {
+  font-size: .68rem; font-weight: 700; color: var(--text3);
+  text-transform: uppercase; letter-spacing: .08em;
+  min-width: 70px; padding-top: 10px; flex-shrink: 0;
+}
+.arr-cells { display: flex; gap: 4px; flex-wrap: wrap; }
+.a-cell {
+  min-width: 44px; border-radius: 6px; padding: 7px 5px; text-align: center;
+  border: 1.5px solid var(--border2); transition: all .2s;
+}
+.a-cell .av { font-weight: 700; font-size: .82rem; color: var(--text); line-height: 1; }
+.a-cell .ai { font-size: .62rem; color: var(--text3); margin-top: 3px; }
+.a-cell.changed { border-color: var(--red); background: var(--red-soft); }
+.a-cell.changed .av { color: var(--red); }
+.a-cell.safe { border-color: var(--green); background: var(--green-soft); }
+.a-cell.safe .av { color: var(--green); }
+.a-cell.normal { background: var(--surface2); }
+
+.demo-controls {
+  display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 14px;
+}
+.demo-btn {
+  background: var(--surface2); border: 1px solid var(--border2); color: var(--text2);
+  font-size: .78rem; font-weight: 600; padding: 7px 14px; border-radius: 6px;
+  cursor: pointer; transition: all .15s;
+}
+.demo-btn:hover { background: var(--surface3); color: var(--text); border-color: var(--accent); }
+.demo-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.demo-btn.primary:hover { background: var(--accent2); }
+.demo-btn.danger { background: rgba(248,113,113,.1); border-color: rgba(248,113,113,.3); color: var(--red); }
+.demo-btn.danger:hover { background: rgba(248,113,113,.2); }
+.demo-btn.reset { background: rgba(240,194,75,.08); border-color: rgba(240,194,75,.2); color: var(--yellow); }
+.demo-status {
+  font-size: .78rem; color: var(--text3); padding: 6px 0;
+  font-family: 'SF Mono', monospace; flex: 1;
+}
+.demo-status .ok { color: var(--green); }
+.demo-status .bad { color: var(--red); }
+
+/* ── stacking demo ── */
+.stack-grid {
+  display: grid; grid-template-columns: 1fr 24px 1fr;
+  gap: 8px; align-items: start; margin: 16px 0;
+}
+.stack-arr {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px; font-size: .78rem;
+}
+.stack-arr-name {
+  font-size: .68rem; font-weight: 700; color: var(--accent2);
+  letter-spacing: .08em; text-transform: uppercase; margin-bottom: 8px;
+}
+.stack-row {
+  display: flex; gap: 3px; margin-bottom: 3px;
+}
+.stack-cell {
+  flex: 1; background: var(--surface3); border-radius: 4px;
+  padding: 5px 2px; text-align: center; font-size: .78rem;
+  font-weight: 600; color: var(--text); border: 1px solid var(--border);
+  min-width: 36px; transition: background .3s, border-color .3s;
+}
+.stack-cell.from-a { background: rgba(79,110,247,.15); border-color: rgba(79,110,247,.3); }
+.stack-cell.from-b { background: rgba(167,139,250,.15); border-color: rgba(167,139,250,.3); }
+.stack-cell.avg-row { background: rgba(240,194,75,.12); border-color: rgba(240,194,75,.3); color: var(--yellow); }
+.stack-cell.total-col { background: rgba(52,211,153,.12); border-color: rgba(52,211,153,.3); color: var(--green); }
+.stack-arrow { display: flex; align-items: center; justify-content: center; color: var(--accent2); font-size: 1.2rem; padding-top: 40px; }
+.shape-badge {
+  display: inline-block; font-size: .68rem; font-weight: 700;
+  background: var(--accent-soft); color: var(--accent2);
+  border: 1px solid var(--accent-line); padding: 2px 8px; border-radius: 4px;
+  font-family: 'SF Mono', monospace; margin-top: 6px;
+}
+
+/* ── matmul shape checker ── */
+.shape-checker {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px; margin: 20px 0;
+}
+.shape-row {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px;
+}
+.shape-label { font-size: .78rem; color: var(--text2); min-width: 30px; }
+.shape-input {
+  background: var(--surface2); border: 1.5px solid var(--border2);
+  color: var(--text); padding: 8px 12px; border-radius: 6px;
+  font-family: 'SF Mono', monospace; font-size: .85rem;
+  width: 90px; outline: none; text-align: center;
+  transition: border-color .15s;
+}
+.shape-input:focus { border-color: var(--accent); }
+.shape-op { font-size: 1.2rem; color: var(--accent2); font-weight: 700; }
+.shape-result {
+  font-size: .88rem; padding: 10px 16px; border-radius: 8px;
+  font-family: 'SF Mono', monospace; min-height: 40px;
+  display: flex; align-items: center;
+}
+.shape-result.ok { background: var(--green-soft); color: var(--green); border: 1px solid rgba(52,211,153,.2); }
+.shape-result.err { background: var(--red-soft); color: var(--red); border: 1px solid rgba(248,113,113,.2); }
+.shape-result.empty { background: var(--surface2); color: var(--text3); border: 1px solid var(--border); }
+
+/* ── weighted score calculator ── */
+.weight-calc {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden; margin: 20px 0;
+}
+.weight-calc-head {
+  background: var(--surface2); padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+  font-size: .78rem; font-weight: 700; color: var(--text2);
+}
+.weight-calc-body { padding: 18px; }
+.wc-row {
+  display: grid; grid-template-columns: 100px 1fr 80px 80px;
+  gap: 10px; align-items: center; margin-bottom: 10px;
+}
+.wc-label { font-size: .82rem; color: var(--text2); font-weight: 600; }
+.wc-slider {
+  -webkit-appearance: none; appearance: none;
+  height: 4px; border-radius: 2px; background: var(--border2);
+  outline: none; cursor: pointer;
+}
+.wc-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 14px; height: 14px;
+  border-radius: 50%; background: var(--accent); cursor: pointer;
+}
+.wc-pct {
+  font-size: .78rem; color: var(--accent2); font-weight: 700;
+  font-family: 'SF Mono', monospace; text-align: right;
+}
+.wc-score-input {
+  background: var(--surface2); border: 1.5px solid var(--border2);
+  color: var(--text); padding: 5px 8px; border-radius: 5px;
+  font-size: .82rem; width: 70px; outline: none; text-align: center;
+  font-family: 'SF Mono', monospace;
+}
+.wc-score-input:focus { border-color: var(--accent); }
+.wc-divider { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+.wc-total-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.wc-total {
+  font-size: 1.5rem; font-weight: 800; color: var(--green);
+  font-family: 'SF Mono', monospace; min-width: 70px;
+}
+.wc-total.warn-score { color: var(--yellow); }
+.wc-total.fail-score { color: var(--red); }
+.wc-verdict {
+  font-size: .82rem; padding: 6px 14px; border-radius: 50px; font-weight: 700;
+}
+.wc-verdict.pass { background: var(--green-soft); color: var(--green); border: 1px solid rgba(52,211,153,.3); }
+.wc-verdict.fail { background: var(--red-soft); color: var(--red); border: 1px solid rgba(248,113,113,.3); }
+.wc-warn { font-size: .78rem; color: var(--yellow); margin-left: 4px; display: none; }
+.wc-formula { font-family: 'SF Mono', monospace; font-size: .78rem; color: var(--text3); margin-top: 6px; }
+
+/* ── quiz ── */
+.quiz-block {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden; margin: 24px 0;
+}
+.quiz-head {
+  background: var(--surface2); padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.quiz-num { font-size: .68rem; font-weight: 800; letter-spacing: .1em; color: var(--purple); text-transform: uppercase; }
+.quiz-score-display { font-size: .78rem; color: var(--text3); font-family: 'SF Mono', monospace; }
+.quiz-body { padding: 18px; }
+.quiz-q { font-size: .92rem; font-weight: 600; color: var(--text); margin-bottom: 14px; line-height: 1.6; }
+.quiz-code {
+  background: var(--code-bg); padding: 12px 14px; border-radius: 7px;
+  font-family: 'SF Mono', monospace; font-size: .8rem; margin-bottom: 14px;
+  color: #c8d0ea; line-height: 1.6;
+}
+.quiz-opts { display: flex; flex-direction: column; gap: 7px; }
+.quiz-opt {
+  background: var(--surface2); border: 1.5px solid var(--border2);
+  color: var(--text2); font-size: .86rem; padding: 10px 16px;
+  border-radius: 7px; cursor: pointer; text-align: left;
+  transition: all .15s; font-family: inherit;
+}
+.quiz-opt:hover:not(:disabled) { background: var(--surface3); color: var(--text); border-color: var(--accent); }
+.quiz-opt.correct { background: var(--green-soft); border-color: var(--green); color: var(--green); }
+.quiz-opt.wrong { background: var(--red-soft); border-color: var(--red); color: var(--red); }
+.quiz-explain {
+  display: none; margin-top: 12px; background: var(--surface2);
+  border-radius: 7px; padding: 12px 14px; font-size: .84rem; color: var(--text2);
+  border-left: 3px solid var(--accent); line-height: 1.6;
+}
+.quiz-explain.show { display: block; }
+
+/* ── floating buttons ── */
+.live-fab {
+  position: fixed; right: 22px; bottom: 22px; z-index: 100;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 20px; background: #15803d; color: #fff; border: none;
+  border-radius: 50px; font-size: .82rem; font-weight: 700; cursor: pointer;
+  text-decoration: none; box-shadow: 0 4px 20px rgba(21,128,61,.4);
+  font-family: inherit; letter-spacing: .02em; transition: background .15s;
+}
+.live-fab:hover { background: #166534; }
+.live-fab svg { width: 15px; height: 15px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; }
+@media print { .live-fab { display: none !important; } }
+
+/* concept diagram */
+.concept-diagram {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px 16px; margin: 20px 0;
+  overflow-x: auto;
+}
+.concept-diagram svg { display: block; max-width: 100%; margin: 0 auto; }
+.concept-diagram figcaption {
+  text-align: center; font-size: .75rem; color: var(--text3);
+  margin-top: 10px; letter-spacing: .03em;
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-eyebrow">NumPy &nbsp;·&nbsp; Lecture 03 &nbsp;·&nbsp; Post-Read</div>
+  <h1>Matrix Operations:<br>Working Across Tables</h1>
+  <p class="hdr-desc">The official marksheet is ready. This week: keep it safe, combine it with Section B, split it for teachers, and calculate weighted scores — all in NumPy.</p>
+  <div class="hdr-flow">
+    <div class="hdr-flow-step active"><span class="dot"></span>Copy Safety</div>
+    <div class="hdr-flow-step active"><span class="dot"></span>Stacking</div>
+    <div class="hdr-flow-step active"><span class="dot"></span>Splitting</div>
+    <div class="hdr-flow-step active"><span class="dot"></span>Matrix Multiply</div>
+    <div class="hdr-flow-step active"><span class="dot"></span>NumPy ↔ Pandas</div>
+  </div>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <a href="#s00" class="toc-item"><span class="toc-num">00</span>Setup & The Bug</a>
+  <a href="#s01" class="toc-item"><span class="toc-num">01</span>Copy vs View</a>
+  <a href="#s02" class="toc-item"><span class="toc-num">02</span>Stacking Arrays</a>
+  <a href="#s03" class="toc-item"><span class="toc-num">03</span>Splitting Arrays</a>
+  <a href="#s04" class="toc-item"><span class="toc-num">04</span>Matrix Multiply</a>
+  <a href="#s05" class="toc-item"><span class="toc-num">05</span>NumPy vs Pandas</a>
+  <a href="#s06" class="toc-item"><span class="toc-num">06</span>Quiz</a>
+</div>
+
+<!-- ══ 00: SETUP ══ -->
+<div class="sec" id="s00">
+  <div class="sec-num">00</div>
+  <h2>Setup & The Annual Report Bug</h2>
+  <p class="sec-sub">The official marksheet from Results Day. Mr. Arjun's warning: last year someone didn't copy properly — 40 report cards went out wrong.</p>
+
+  <div class="code-block">
+    <div class="code-head"><span class="code-lang">Python — setup</span><button class="copy-btn" onclick="cpCode(this)">Copy</button></div>
+    <pre><span style="color:var(--c-kw)">import</span> numpy <span style="color:var(--c-kw)">as</span> np
+
+<span style="color:#5a6b90"># 8 students × 3 subjects (Maths, Science, English)</span>
+results = np.<span style="color:var(--c-bi)">array</span>([[<span style="color:var(--c-num)">80.6</span>, <span style="color:var(--c-num)">82.6</span>, <span style="color:var(--c-num)">72.2</span>], [<span style="color:var(--c-num)">50.0</span>, <span style="color:var(--c-num)">31.4</span>, <span style="color:var(--c-num)">55.8</span>],
+                    [<span style="color:var(--c-num)">100.0</span>, <span style="color:var(--c-num)">93.8</span>, <span style="color:var(--c-num)">91.2</span>], [<span style="color:var(--c-num)">34.6</span>, <span style="color:var(--c-num)">41.4</span>, <span style="color:var(--c-num)">28.4</span>],
+                    [<span style="color:var(--c-num)">74.4</span>, <span style="color:var(--c-num)">68.4</span>, <span style="color:var(--c-num)">67.2</span>], [<span style="color:var(--c-num)">90.6</span>, <span style="color:var(--c-num)">81.4</span>, <span style="color:var(--c-num)">91.2</span>],
+                    [<span style="color:var(--c-num)">34.4</span>, <span style="color:var(--c-num)">47.2</span>, <span style="color:var(--c-num)">61.8</span>], [<span style="color:var(--c-num)">97.2</span>, <span style="color:var(--c-num)">88.8</span>, <span style="color:var(--c-num)">97.8</span>]])
+
+sec_a    = results[:<span style="color:var(--c-num)">4</span>]           <span style="color:#5a6b90"># Rolls 1–4</span>
+sec_b    = results[<span style="color:var(--c-num)">4</span>:]           <span style="color:#5a6b90"># Rolls 5–8</span>
+weights  = np.<span style="color:var(--c-bi)">array</span>([<span style="color:var(--c-num)">0.5</span>, <span style="color:var(--c-num)">0.3</span>, <span style="color:var(--c-num)">0.2</span>])  <span style="color:#5a6b90"># school: 50/30/20</span>
+schemes  = np.<span style="color:var(--c-bi)">array</span>([[<span style="color:var(--c-num)">0.5</span>, <span style="color:var(--c-num)">0.4</span>],[<span style="color:var(--c-num)">0.3</span>, <span style="color:var(--c-num)">0.3</span>],[<span style="color:var(--c-num)">0.2</span>, <span style="color:var(--c-num)">0.3</span>]])  <span style="color:#5a6b90"># both schemes</span></pre>
+  </div>
+</div>
+
+<!-- ══ 01: COPY vs VIEW ══ -->
+<div class="sec" id="s01">
+  <div class="sec-num">01</div>
+  <h2>Copy vs View</h2>
+  <p class="sec-sub">= never copies. It puts a second name on the same address. Try it below.</p>
+
+  <!-- DIAGRAM: copy vs view -->
+  <figure class="concept-diagram">
+    <svg viewBox="0 0 620 180" xmlns="http://www.w3.org/2000/svg" font-family="'SF Mono',Consolas,monospace" font-size="12">
+      <!-- title -->
+      <text x="310" y="22" text-anchor="middle" fill="#9099b8" font-size="11" font-weight="700" letter-spacing=".1em" font-family="system-ui">= SHARES DATA &nbsp;&nbsp;&nbsp; .copy() MAKES A NEW ARRAY</text>
+      <!-- LEFT side: assignment (view) -->
+      <!-- box: results -->
+      <rect x="20" y="38" width="130" height="52" rx="7" fill="#1a1e35" stroke="#2a2f50" stroke-width="1.5"/>
+      <text x="85" y="58" text-anchor="middle" fill="#6b84ff" font-size="11" font-weight="700">results</text>
+      <text x="85" y="80" text-anchor="middle" fill="#c8d0ea" font-size="11">[80.6, 50.0 …]</text>
+      <!-- memory block -->
+      <rect x="20" y="110" width="130" height="36" rx="7" fill="#16213a" stroke="#4f6ef7" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="85" y="133" text-anchor="middle" fill="#4f6ef7" font-size="10">memory addr 0x4A</text>
+      <!-- arrow results → mem -->
+      <line x1="85" y1="90" x2="85" y2="110" stroke="#4f6ef7" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+      <!-- box: scratch = results -->
+      <rect x="20" y="38" width="130" height="52" rx="7" fill="none"/>
+      <rect x="170" y="38" width="130" height="52" rx="7" fill="#1a1e35" stroke="#f87171" stroke-width="1.5"/>
+      <text x="235" y="58" text-anchor="middle" fill="#f87171" font-size="11" font-weight="700">scratch</text>
+      <text x="235" y="80" text-anchor="middle" fill="#f87171" font-size="11">= results</text>
+      <!-- arrow scratch → same mem -->
+      <path d="M235,90 Q235,100 85,110" fill="none" stroke="#f87171" stroke-width="1.5" marker-end="url(#arr-red)" stroke-dasharray="4,2"/>
+      <!-- label -->
+      <text x="160" y="168" text-anchor="middle" fill="#f87171" font-size="10" font-weight="600">same object — no copy</text>
+
+      <!-- RIGHT side: .copy() -->
+      <!-- box: results2 -->
+      <rect x="360" y="38" width="130" height="52" rx="7" fill="#1a1e35" stroke="#2a2f50" stroke-width="1.5"/>
+      <text x="425" y="58" text-anchor="middle" fill="#6b84ff" font-size="11" font-weight="700">results</text>
+      <text x="425" y="80" text-anchor="middle" fill="#c8d0ea" font-size="11">[80.6, 50.0 …]</text>
+      <!-- mem A -->
+      <rect x="360" y="110" width="130" height="36" rx="7" fill="#16213a" stroke="#4f6ef7" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="425" y="133" text-anchor="middle" fill="#4f6ef7" font-size="10">memory addr 0x4A</text>
+      <!-- box: scratch2 = .copy() -->
+      <rect x="500" y="38" width="100" height="52" rx="7" fill="#0d2010" stroke="#34d399" stroke-width="1.5"/>
+      <text x="550" y="58" text-anchor="middle" fill="#34d399" font-size="11" font-weight="700">scratch</text>
+      <text x="550" y="80" text-anchor="middle" fill="#34d399" font-size="11">.copy()</text>
+      <!-- mem B -->
+      <rect x="490" y="110" width="120" height="36" rx="7" fill="#081a10" stroke="#34d399" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="550" y="133" text-anchor="middle" fill="#34d399" font-size="10">memory addr 0x9F</text>
+      <!-- arrows -->
+      <line x1="425" y1="90" x2="425" y2="110" stroke="#4f6ef7" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+      <line x1="550" y1="90" x2="550" y2="110" stroke="#34d399" stroke-width="1.5" marker-end="url(#arr-green)"/>
+      <!-- label -->
+      <text x="490" y="168" text-anchor="middle" fill="#34d399" font-size="10" font-weight="600">independent — safe to edit</text>
+
+      <!-- divider -->
+      <line x1="310" y1="30" x2="310" y2="175" stroke="#2a2f50" stroke-width="1" stroke-dasharray="4,4"/>
+
+      <!-- arrowhead defs -->
+      <defs>
+        <marker id="arr-blue" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+          <path d="M1,1 L7,4 L1,7 Z" fill="#4f6ef7"/>
+        </marker>
+        <marker id="arr-red" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+          <path d="M1,1 L7,4 L1,7 Z" fill="#f87171"/>
+        </marker>
+        <marker id="arr-green" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+          <path d="M1,1 L7,4 L1,7 Z" fill="#34d399"/>
+        </marker>
+      </defs>
+    </svg>
+    <figcaption>= puts a second label on the same memory address · .copy() allocates new memory</figcaption>
+  </figure>
+
+  <!-- LIVE DEMO: copy / view -->
+  <div class="demo-box">
+    <div class="demo-head">
+      <span class="demo-title">🔬 Live Demo — What actually happens to <code>results</code>?</span>
+    </div>
+    <div class="demo-body">
+      <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:16px;">
+        <div style="flex:1; min-width:200px;">
+          <div style="font-size:.7rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">results (official)</div>
+          <div class="arr-cells" id="cv-results"></div>
+        </div>
+        <div style="flex:1; min-width:200px;">
+          <div style="font-size:.7rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">scratch (working copy)</div>
+          <div class="arr-cells" id="cv-scratch"></div>
+        </div>
+      </div>
+      <div class="demo-controls">
+        <button class="demo-btn danger" onclick="cvDemo('assign')">scratch = results<br><span style="font-size:.68rem;opacity:.7">(assignment)</span></button>
+        <button class="demo-btn primary" onclick="cvDemo('copy')">scratch = results.copy()<br><span style="font-size:.68rem;opacity:.7">(safe copy)</span></button>
+        <button class="demo-btn" onclick="cvDemo('apply')">Apply grace marks<br><span style="font-size:.68rem;opacity:.7">(scratch[x&lt;35]+=5)</span></button>
+        <button class="demo-btn reset" onclick="cvDemo('reset')">↺ Reset</button>
+      </div>
+      <div class="demo-status" id="cv-status">Choose a method first, then apply grace marks.</div>
+    </div>
+  </div>
+
+  <p>A <strong>slice</strong> is also a view — it's a window into the original. Only these operations give you an independent copy:</p>
+
+  <table class="data-table">
+    <tr><th>Operation</th><th>Result</th><th>Use when</th></tr>
+    <tr><td><code>scratch = results</code></td><td>Same object — no new data</td><td>Never, if you plan to edit</td></tr>
+    <tr><td><code>results[:4]</code> (slice)</td><td><span class="pill pill-view">view</span> — edits show in original</td><td>Read-only access</td></tr>
+    <tr><td><code>results[[0,2]]</code> (fancy index)</td><td><span class="pill pill-copy">copy</span></td><td>When you need independence</td></tr>
+    <tr><td><code>results[results > 50]</code> (bool mask)</td><td><span class="pill pill-copy">copy</span></td><td>Filtered independent subset</td></tr>
+    <tr><td><code>results.copy()</code></td><td><span class="pill pill-copy">copy</span></td><td>Always, for a scratch sheet</td></tr>
+  </table>
+
+  <div class="callout warn">
+    <div class="callout-title">⚠ Deep Copy — object arrays only</div>
+    For numeric arrays, <code>.copy()</code> is enough. Only use <code>copy.deepcopy()</code> when each cell holds a Python object (a list, a dict) — like a roster of club badges. For every marksheet you'll work with as an analyst, <code>.copy()</code> is sufficient.
+  </div>
+
+  <div class="code-block">
+    <div class="code-head"><span class="code-lang">Python</span><button class="copy-btn" onclick="cpCode(this)">Copy</button></div>
+    <pre>scratch = results.<span style="color:var(--c-bi)">copy</span>()
+np.<span style="color:var(--c-bi)">shares_memory</span>(scratch, results)   <span style="color:#5a6b90"># → False ✓</span>
+scratch <span style="color:var(--c-kw)">is</span> results                     <span style="color:#5a6b90"># → False ✓</span></pre>
+    <div class="out-block">False
+False</div>
+  </div>
+</div>
+
+<!-- ══ 02: STACKING ══ -->
+<div class="sec" id="s02">
+  <div class="sec-num">02</div>
+  <h2>Stacking Arrays</h2>
+  <p class="sec-sub">Section A and Section B sent marks separately. The principal needs one master sheet — with a totals column and a class-average row.</p>
+
+  <!-- stacking visual -->
+  <div class="demo-box">
+    <div class="demo-head">
+      <span class="demo-title">🧱 Stacking Demo — build the master sheet step by step</span>
+    </div>
+    <div class="demo-body">
+      <div id="stack-vis"></div>
+      <div class="demo-controls" style="margin-top:14px;">
+        <button class="demo-btn primary" onclick="stackStep(1)">1. vstack sec_a + sec_b</button>
+        <button class="demo-btn primary" onclick="stackStep(2)">2. hstack totals column</button>
+        <button class="demo-btn primary" onclick="stackStep(3)">3. vstack avg row</button>
+        <button class="demo-btn reset" onclick="stackStep(0)">↺ Reset</button>
+      </div>
+      <div class="demo-status" id="stack-status">Start with step 1 →</div>
+    </div>
+  </div>
+
+  <!-- DIAGRAM: vstack vs hstack -->
+  <figure class="concept-diagram">
+    <svg viewBox="0 0 620 220" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif" font-size="12">
+      <!-- LEFT: vstack -->
+      <text x="145" y="22" text-anchor="middle" fill="#6b84ff" font-size="11" font-weight="800" letter-spacing=".08em">np.vstack — adds rows below</text>
+      <!-- sec_a block -->
+      <rect x="20" y="35" width="100" height="60" rx="6" fill="rgba(79,110,247,.15)" stroke="#4f6ef7" stroke-width="1.5"/>
+      <text x="70" y="62" text-anchor="middle" fill="#6b84ff" font-weight="700" font-size="11">sec_a</text>
+      <text x="70" y="78" text-anchor="middle" fill="#9099b8" font-size="10">(4 × 3)</text>
+      <!-- sec_b block -->
+      <rect x="20" y="105" width="100" height="60" rx="6" fill="rgba(167,139,250,.15)" stroke="#a78bfa" stroke-width="1.5"/>
+      <text x="70" y="132" text-anchor="middle" fill="#a78bfa" font-weight="700" font-size="11">sec_b</text>
+      <text x="70" y="148" text-anchor="middle" fill="#9099b8" font-size="10">(4 × 3)</text>
+      <!-- arrow right -->
+      <line x1="130" y1="97" x2="155" y2="97" stroke="#34d399" stroke-width="2" marker-end="url(#arr-g2)"/>
+      <!-- result -->
+      <rect x="165" y="35" width="100" height="130" rx="6" fill="#0d2010" stroke="#34d399" stroke-width="1.5"/>
+      <rect x="165" y="35" width="100" height="65" rx="6" fill="rgba(79,110,247,.1)" stroke="none"/>
+      <text x="215" y="97" text-anchor="middle" fill="#6b84ff" font-size="10">sec_a rows</text>
+      <text x="215" y="130" text-anchor="middle" fill="#a78bfa" font-size="10">sec_b rows</text>
+      <text x="215" y="183" text-anchor="middle" fill="#34d399" font-weight="700" font-size="11">master (8 × 3)</text>
+      <!-- label axis -->
+      <text x="99" y="210" text-anchor="middle" fill="#5a6080" font-size="10">axis 0 ↕ (rows grow)</text>
+
+      <!-- divider -->
+      <line x1="310" y1="10" x2="310" y2="215" stroke="#2a2f50" stroke-width="1" stroke-dasharray="4,4"/>
+
+      <!-- RIGHT: hstack -->
+      <text x="470" y="22" text-anchor="middle" fill="#6b84ff" font-size="11" font-weight="800" letter-spacing=".08em">np.hstack — adds columns right</text>
+      <!-- master block -->
+      <rect x="330" y="55" width="100" height="110" rx="6" fill="rgba(79,110,247,.12)" stroke="#4f6ef7" stroke-width="1.5"/>
+      <text x="380" y="107" text-anchor="middle" fill="#6b84ff" font-weight="700" font-size="11">master</text>
+      <text x="380" y="123" text-anchor="middle" fill="#9099b8" font-size="10">(8 × 3)</text>
+      <!-- totals block -->
+      <rect x="440" y="55" width="40" height="110" rx="6" fill="rgba(52,211,153,.12)" stroke="#34d399" stroke-width="1.5"/>
+      <text x="460" y="107" text-anchor="middle" fill="#34d399" font-weight="700" font-size="9">totals</text>
+      <text x="460" y="121" text-anchor="middle" fill="#9099b8" font-size="9">(8×1)</text>
+      <!-- arrow right -->
+      <line x1="490" y1="110" x2="510" y2="110" stroke="#34d399" stroke-width="2" marker-end="url(#arr-g2)"/>
+      <!-- result -->
+      <rect x="520" y="55" width="80" height="110" rx="6" fill="#0d2010" stroke="#34d399" stroke-width="1.5"/>
+      <text x="560" y="107" text-anchor="middle" fill="#34d399" font-weight="700" font-size="11">sheet</text>
+      <text x="560" y="123" text-anchor="middle" fill="#9099b8" font-size="10">(8 × 4)</text>
+      <!-- axis label -->
+      <text x="470" y="210" text-anchor="middle" fill="#5a6080" font-size="10">axis 1 ↔ (columns grow)</text>
+      <!-- reshape note -->
+      <text x="460" y="185" text-anchor="middle" fill="#f0c24b" font-size="9">reshape(8,1) first!</text>
+
+      <defs>
+        <marker id="arr-g2" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+          <path d="M1,1 L7,4 L1,7 Z" fill="#34d399"/>
+        </marker>
+      </defs>
+    </svg>
+    <figcaption>vstack → rows grow down (axis 0) · hstack → columns grow right (axis 1) · both need matching size in the other direction</figcaption>
+  </figure>
+
+  <div class="code-block">
+    <div class="code-head"><span class="code-lang">Python</span><button class="copy-btn" onclick="cpCode(this)">Copy</button></div>
+    <pre><span style="color:#5a6b90"># Step 1 — vstack: add rows below (SQL: UNION ALL)</span>
+master = np.<span style="color:var(--c-bi)">vstack</span>([sec_a, sec_b])          <span style="color:#5a6b90"># (4,3)+(4,3) → (8,3)</span>
+
+<span style="color:#5a6b90"># Step 2 — hstack: add column to the right</span>
+totals = master.<span style="color:var(--c-bi)">sum</span>(axis=<span style="color:var(--c-num)">1</span>)                 <span style="color:#5a6b90"># shape (8,) — flat!</span>
+sheet  = np.<span style="color:var(--c-bi)">hstack</span>([master, totals.<span style="color:var(--c-bi)">reshape</span>(<span style="color:var(--c-num)">8</span>,<span style="color:var(--c-num)">1</span>)])  <span style="color:#5a6b90"># reshape required</span>
+
+<span style="color:#5a6b90"># Step 3 — vstack again: add average row at bottom</span>
+avg   = sheet.<span style="color:var(--c-bi)">mean</span>(axis=<span style="color:var(--c-num)">0</span>)
+final = np.<span style="color:var(--c-bi)">vstack</span>([sheet, avg])             <span style="color:#5a6b90"># (8,4)+(1,4) → (9,4)</span></pre>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-title">⚠ The reshape trap</div>
+    <code>totals</code> has shape <code>(8,)</code> — a flat list. <code>hstack</code> sees it as 8 separate columns, not one column of 8 values. Always <code>.reshape(8, 1)</code> before stacking a computed column.
+  </div>
+
+  <div class="callout info">
+    <div class="callout-title">SQL Equivalent</div>
+    <code>np.vstack([sec_a, sec_b])</code> → <code>SELECT * FROM sec_a UNION ALL SELECT * FROM sec_b</code><br>
+    <code>np.hstack([master, totals])</code> → <code>JOIN totals ON position</code> (no key — rows must already be in order)
+  </div>
+</div>
+
+<!-- ══ 03: SPLITTING ══ -->
+<div class="sec" id="s03">
+  <div class="sec-num">03</div>
+  <h2>Splitting Arrays</h2>
+  <p class="sec-sub">Every section head wants only their rows. Every subject teacher wants only their column. The printer needs 3 batches from 8 students.</p>
+
+  <div class="code-block">
+    <div class="code-head"><span class="code-lang">Python</span><button class="copy-btn" onclick="cpCode(this)">Copy</button></div>
+    <pre><span style="color:#5a6b90"># vsplit — cut rows (axis 0)</span>
+sec_a2, sec_b2 = np.<span style="color:var(--c-bi)">vsplit</span>(master, <span style="color:var(--c-num)">2</span>)        <span style="color:#5a6b90"># (8,3) → (4,3) + (4,3)</span>
+
+<span style="color:#5a6b90"># hsplit — cut columns (axis 1)</span>
+maths, sci, eng = np.<span style="color:var(--c-bi)">hsplit</span>(master, <span style="color:var(--c-num)">3</span>)       <span style="color:#5a6b90"># (8,3) → 3 × (8,1)</span>
+
+<span style="color:#5a6b90"># uneven split: 8 ÷ 3 isn't equal → use array_split</span>
+<span style="color:#5a6b90"># np.vsplit(master, 3)   # → ValueError!</span>
+batches = np.<span style="color:var(--c-bi)">array_split</span>(master, <span style="color:var(--c-num)">3</span>)         <span style="color:#5a6b90"># → (3,3)+(3,3)+(2,3) ✓</span></pre>
+    <div class="out-block">[(3, 3), (3, 3), (2, 3)]</div>
+  </div>
+
+  <!-- split views demo -->
+  <div class="demo-box">
+    <div class="demo-head">
+      <span class="demo-title">⚠️ Split pieces are views — the same bug, different disguise</span>
+    </div>
+    <div class="demo-body">
+      <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:14px;">
+        <div style="flex:1;min-width:180px;">
+          <div style="font-size:.7rem;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">master[0,0] — Roll 1 Maths</div>
+          <div style="font-size:2rem;font-weight:800;font-family:monospace;" id="split-master-val">80.6</div>
+        </div>
+        <div style="flex:1;min-width:180px;">
+          <div style="font-size:.7rem;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">sec_a2[0,0] — same cell</div>
+          <div style="font-size:2rem;font-weight:800;font-family:monospace;" id="split-sec-val">80.6</div>
+        </div>
+      </div>
+      <div class="demo-controls">
+        <button class="demo-btn danger" onclick="splitDemo('vsplit')">sec_a2, _ = np.vsplit(master, 2)</button>
+        <button class="demo-btn danger" onclick="splitDemo('edit')">sec_a2[0,0] = 0 (edit the piece)</button>
+        <button class="demo-btn primary" onclick="splitDemo('copy')">sec_a2 = np.vsplit(...)[0].copy()</button>
+        <button class="demo-btn reset" onclick="splitDemo('reset')">↺ Reset</button>
+      </div>
+      <div class="demo-status" id="split-status">Run vsplit, then edit the piece — watch what happens to master.</div>
+    </div>
+  </div>
+
+  <table class="data-table">
+    <tr><th>Function</th><th>Cuts along</th><th>Needs equal pieces?</th><th>Result type</th></tr>
+    <tr><td><code>np.vsplit(a, n)</code></td><td>Rows (axis 0)</td><td>Yes — ValueError if not equal</td><td><span class="pill pill-view">views</span></td></tr>
+    <tr><td><code>np.hsplit(a, n)</code></td><td>Columns (axis 1)</td><td>Yes</td><td><span class="pill pill-view">views</span></td></tr>
+    <tr><td><code>np.array_split(a, n)</code></td><td>Either axis</td><td>No — uneven ok</td><td><span class="pill pill-view">views</span></td></tr>
+  </table>
+</div>
+
+<!-- ══ 04: MATRIX MULTIPLY ══ -->
+<div class="sec" id="s04">
+  <div class="sec-num">04</div>
+  <h2>Matrix Multiplication</h2>
+  <p class="sec-sub">Same marks, different weights → different verdicts. Roll 4 passes under the school's scheme (35.4), fails under the board's (34.78). The <code>@</code> operator does this in one line.</p>
+
+  <!-- weight calculator -->
+  <div class="weight-calc">
+    <div class="weight-calc-head">🎛 Weighted Score Calculator — drag the sliders, watch the score change</div>
+    <div class="weight-calc-body">
+      <div style="font-size:.7rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;">Enter marks for a student:</div>
+      <div class="wc-row">
+        <div class="wc-label">Maths</div>
+        <input class="wc-score-input" id="wc-m" type="number" min="0" max="100" value="34.6" oninput="wcCalc()">
+        <input class="wc-slider" id="sl-m" type="range" min="0" max="50" value="50" oninput="wcSlider('m');wcCalc()">
+        <div class="wc-pct" id="pct-m">50%</div>
+      </div>
+      <div class="wc-row">
+        <div class="wc-label">Science</div>
+        <input class="wc-score-input" id="wc-s" type="number" min="0" max="100" value="41.4" oninput="wcCalc()">
+        <input class="wc-slider" id="sl-s" type="range" min="0" max="50" value="30" oninput="wcSlider('s');wcCalc()">
+        <div class="wc-pct" id="pct-s">30%</div>
+      </div>
+      <div class="wc-row">
+        <div class="wc-label">English</div>
+        <input class="wc-score-input" id="wc-e" type="number" min="0" max="100" value="28.4" oninput="wcCalc()">
+        <input class="wc-slider" id="sl-e" type="range" min="0" max="50" value="20" oninput="wcSlider('e');wcCalc()">
+        <div class="wc-pct" id="pct-e">20%</div>
+      </div>
+      <hr class="wc-divider">
+      <div class="wc-total-row">
+        <div class="wc-total" id="wc-total">35.40</div>
+        <div class="wc-verdict" id="wc-verdict">Pass</div>
+        <div class="wc-warn" id="wc-warn">⚠ Weights don't add to 100%</div>
+      </div>
+      <div class="wc-formula" id="wc-formula"></div>
+    </div>
+  </div>
+
+  <!-- shape checker -->
+  <p>The shape rule: <strong>(m, k) @ (k, n) → (m, n)</strong>. The inner sizes must match and disappear. Try any shapes:</p>
+
+  <!-- DIAGRAM: matrix multiply mechanics -->
+  <figure class="concept-diagram">
+    <svg viewBox="0 0 620 200" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif" font-size="12">
+      <!-- title -->
+      <text x="310" y="20" text-anchor="middle" fill="#9099b8" font-size="11" font-weight="700" letter-spacing=".08em">results (8×3) @ weights (3,) → overall (8,)</text>
+
+      <!-- results matrix: 3 columns shown as colour bands -->
+      <rect x="20" y="35" width="150" height="140" rx="6" fill="#1a1e35" stroke="#4f6ef7" stroke-width="1.5"/>
+      <!-- col bands -->
+      <rect x="20" y="35" width="50" height="140" rx="0" fill="rgba(79,110,247,.2)" stroke="none"/>
+      <rect x="70" y="35" width="50" height="140" rx="0" fill="rgba(167,139,250,.15)" stroke="none"/>
+      <rect x="120" y="35" width="50" height="140" rx="0" fill="rgba(52,211,153,.12)" stroke="none"/>
+      <!-- clip to border -->
+      <rect x="20" y="35" width="150" height="140" rx="6" fill="none" stroke="#4f6ef7" stroke-width="1.5"/>
+      <text x="45" y="112" text-anchor="middle" fill="#6b84ff" font-size="10" font-weight="700">Maths</text>
+      <text x="95" y="112" text-anchor="middle" fill="#a78bfa" font-size="10" font-weight="700">Sci</text>
+      <text x="145" y="112" text-anchor="middle" fill="#34d399" font-size="10" font-weight="700">Eng</text>
+      <text x="95" y="30" text-anchor="middle" fill="#6b84ff" font-size="10">results (8 rows × 3 cols)</text>
+
+      <!-- @ -->
+      <text x="195" y="112" text-anchor="middle" fill="#f0c24b" font-size="22" font-weight="800">@</text>
+
+      <!-- weights vector: tall (3 rows) -->
+      <rect x="215" y="60" width="40" height="90" rx="6" fill="#1a1e35" stroke="#f0c24b" stroke-width="1.5"/>
+      <rect x="215" y="60" width="40" height="30" rx="0" fill="rgba(79,110,247,.2)"/>
+      <rect x="215" y="90" width="40" height="30" rx="0" fill="rgba(167,139,250,.15)"/>
+      <rect x="215" y="120" width="40" height="30" rx="0" fill="rgba(52,211,153,.12)"/>
+      <rect x="215" y="60" width="40" height="90" rx="6" fill="none" stroke="#f0c24b" stroke-width="1.5"/>
+      <text x="235" y="78" text-anchor="middle" fill="#6b84ff" font-size="9">.5</text>
+      <text x="235" y="108" text-anchor="middle" fill="#a78bfa" font-size="9">.3</text>
+      <text x="235" y="138" text-anchor="middle" fill="#34d399" font-size="9">.2</text>
+      <text x="235" y="167" text-anchor="middle" fill="#f0c24b" font-size="10">weights (3,)</text>
+
+      <!-- inner dim annotation -->
+      <text x="175" y="145" text-anchor="middle" fill="#f87171" font-size="9">3 ↔ 3</text>
+      <text x="175" y="158" text-anchor="middle" fill="#f87171" font-size="9">must match</text>
+
+      <!-- = -->
+      <text x="285" y="112" text-anchor="middle" fill="#9099b8" font-size="20" font-weight="700">=</text>
+
+      <!-- result: tall (8 rows) -->
+      <rect x="305" y="35" width="40" height="140" rx="6" fill="#0d2010" stroke="#34d399" stroke-width="1.5"/>
+      <text x="325" y="112" text-anchor="middle" fill="#34d399" font-weight="700" font-size="10">overall</text>
+      <text x="325" y="128" text-anchor="middle" fill="#9099b8" font-size="9">(8,)</text>
+
+      <!-- inner dim disappears arrow -->
+      <text x="380" y="80" fill="#9099b8" font-size="11">(8, <tspan fill="#f87171" font-weight="700">3</tspan>) @ (<tspan fill="#f87171" font-weight="700">3</tspan>,)</text>
+      <text x="380" y="100" fill="#34d399" font-size="11">→ (8,)   ✓</text>
+      <line x1="372" y1="108" x2="610" y2="108" stroke="#2a2f50" stroke-width="1" stroke-dasharray="3,3"/>
+      <text x="380" y="125" fill="#9099b8" font-size="11">(8, <tspan fill="#f87171" font-weight="700">3</tspan>) @ (<tspan fill="#f87171" font-weight="700">3</tspan>, 2)</text>
+      <text x="380" y="145" fill="#34d399" font-size="11">→ (8, 2)   ✓</text>
+      <text x="380" y="165" fill="#9099b8" font-size="11">(8, <tspan fill="#f87171" font-weight="700">3</tspan>) @ (<tspan fill="#f87171" font-weight="700">8</tspan>,)</text>
+      <text x="380" y="185" fill="#f87171" font-size="11">→ ValueError   ✗   3 ≠ 8</text>
+    </svg>
+    <figcaption>Each row of results (one student) · dot-product · weights column → one weighted score. Inner dim (3) is shared and disappears from the output.</figcaption>
+  </figure>
+  <div class="shape-checker">
+    <div class="shape-row">
+      <div class="shape-label">A:</div>
+      <input class="shape-input" id="sh-am" placeholder="rows" value="8">
+      <span style="color:var(--text3);font-size:.8rem;">×</span>
+      <input class="shape-input" id="sh-ak" placeholder="cols" value="3">
+      <span class="shape-op">@</span>
+      <div class="shape-label">B:</div>
+      <input class="shape-input" id="sh-bk" placeholder="rows" value="3">
+      <span style="color:var(--text3);font-size:.8rem;">×</span>
+      <input class="shape-input" id="sh-bn" placeholder="cols" value="2">
+      <button class="demo-btn primary" onclick="shapeCheck()" style="margin-left:4px;">Check</button>
+    </div>
+    <div class="shape-result empty" id="shape-result">Enter shapes and click Check</div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-head"><span class="code-lang">Python</span><button class="copy-btn" onclick="cpCode(this)">Copy</button></div>
+    <pre><span style="color:#5a6b90"># one scheme: (8,3) @ (3,) → (8,)</span>
+overall = results <span style="color:var(--c-kw)">@</span> weights
+<span style="color:#5a6b90"># → [79.5, 45.6, 96.4, 35.4, 71.2, 88. , 43.7, 94.8]</span>
+
+<span style="color:#5a6b90"># two schemes at once: (8,3) @ (3,2) → (8,2)</span>
+both = results <span style="color:var(--c-kw)">@</span> schemes
+
+<span style="color:#5a6b90"># who flips verdict between schemes?</span>
+passed = both >= <span style="color:var(--c-num)">35</span>
+flips  = np.<span style="color:var(--c-bi)">where</span>(passed[:,<span style="color:var(--c-num)">0</span>] != passed[:,<span style="color:var(--c-num)">1</span>])[<span style="color:var(--c-num)">0</span>] + <span style="color:var(--c-num)">1</span>  <span style="color:#5a6b90"># → [4]</span></pre>
+  </div>
+
+  <table class="data-table">
+    <tr><th>Operator</th><th>What it does</th><th>Use for</th></tr>
+    <tr><td><code>a * b</code></td><td>Element-wise (with broadcasting)</td><td>Scale each value independently</td></tr>
+    <tr><td><code>a @ b</code></td><td>Matrix multiplication</td><td>Weighted scores, regression, ML</td></tr>
+    <tr><td><code>np.matmul(a, b)</code></td><td>Same as <code>@</code></td><td>When passing as a function argument</td></tr>
+    <tr><td><code>np.dot(a, b)</code></td><td>Same for 1D/2D; also accepts scalar</td><td>Older code you may encounter</td></tr>
+  </table>
+
+  <div class="callout spot">
+    <div class="callout-title">🎯 Interview question</div>
+    <strong>"Difference between * and @ in NumPy?"</strong><br>
+    <code>*</code> multiplies position-by-position (shape stays same, broadcasting applies). <code>@</code> is matrix multiplication: row-meets-column, inner dimensions must match and disappear from the output shape.
+  </div>
+</div>
+
+<!-- ══ 05: NUMPY vs PANDAS ══ -->
+<div class="sec" id="s05">
+  <div class="sec-num">05</div>
+  <h2>NumPy vs Pandas</h2>
+  <p class="sec-sub">Riya tried to add a Section column to the marks array. Everything turned to strings. NumPy arrays hold one dtype — text wins and breaks the maths.</p>
+
+  <!-- DIAGRAM: dtype coercion -->
+  <figure class="concept-diagram">
+    <svg viewBox="0 0 620 170" xmlns="http://www.w3.org/2000/svg" font-family="'SF Mono',Consolas,monospace" font-size="11">
+      <!-- LEFT: numpy mixed -->
+      <text x="145" y="20" text-anchor="middle" fill="#f87171" font-size="11" font-weight="800" font-family="system-ui">NumPy — one dtype, all cells coerced</text>
+      <!-- header cells -->
+      <rect x="20" y="30" width="55" height="26" rx="3" fill="rgba(248,113,113,.15)" stroke="#f87171" stroke-width="1"/>
+      <text x="47" y="47" text-anchor="middle" fill="#f87171" font-size="10">Section</text>
+      <rect x="77" y="30" width="45" height="26" rx="3" fill="rgba(248,113,113,.15)" stroke="#f87171" stroke-width="1"/>
+      <text x="99" y="47" text-anchor="middle" fill="#f87171" font-size="10">Maths</text>
+      <rect x="124" y="30" width="45" height="26" rx="3" fill="rgba(248,113,113,.15)" stroke="#f87171" stroke-width="1"/>
+      <text x="146" y="47" text-anchor="middle" fill="#f87171" font-size="10">Science</text>
+      <rect x="171" y="30" width="45" height="26" rx="3" fill="rgba(248,113,113,.15)" stroke="#f87171" stroke-width="1"/>
+      <text x="193" y="47" text-anchor="middle" fill="#f87171" font-size="10">English</text>
+      <!-- data row -->
+      <rect x="20" y="58" width="55" height="26" rx="3" fill="#1a1e35" stroke="#2a2f50" stroke-width="1"/>
+      <text x="47" y="75" text-anchor="middle" fill="#f0c24b" font-size="10">'A'</text>
+      <rect x="77" y="58" width="45" height="26" rx="3" fill="#1a1e35" stroke="#2a2f50" stroke-width="1"/>
+      <text x="99" y="75" text-anchor="middle" fill="#f87171" font-size="10">'80.6'</text>
+      <rect x="124" y="58" width="45" height="26" rx="3" fill="#1a1e35" stroke="#2a2f50" stroke-width="1"/>
+      <text x="146" y="75" text-anchor="middle" fill="#f87171" font-size="10">'82.6'</text>
+      <rect x="171" y="58" width="45" height="26" rx="3" fill="#1a1e35" stroke="#2a2f50" stroke-width="1"/>
+      <text x="193" y="75" text-anchor="middle" fill="#f87171" font-size="10">'72.2'</text>
+      <!-- dtype label -->
+      <text x="20" y="105" fill="#f87171" font-size="10">dtype: &lt;U32 — everything became a string!</text>
+      <!-- error -->
+      <rect x="20" y="115" width="200" height="26" rx="4" fill="rgba(248,113,113,.08)" stroke="rgba(248,113,113,.3)" stroke-width="1"/>
+      <text x="30" y="132" fill="#f87171" font-size="9">mixed[1,1] + 5  →  TypeError: can't add</text>
+
+      <!-- divider -->
+      <line x1="310" y1="10" x2="310" y2="165" stroke="#2a2f50" stroke-width="1" stroke-dasharray="4,4"/>
+
+      <!-- RIGHT: pandas -->
+      <text x="470" y="20" text-anchor="middle" fill="#34d399" font-size="11" font-weight="800" font-family="system-ui">Pandas — one dtype per column</text>
+      <!-- header -->
+      <rect x="330" y="30" width="55" height="26" rx="3" fill="rgba(52,211,153,.12)" stroke="#34d399" stroke-width="1"/>
+      <text x="357" y="47" text-anchor="middle" fill="#34d399" font-size="10">Section</text>
+      <rect x="387" y="30" width="45" height="26" rx="3" fill="rgba(79,110,247,.15)" stroke="#4f6ef7" stroke-width="1"/>
+      <text x="409" y="47" text-anchor="middle" fill="#6b84ff" font-size="10">Maths</text>
+      <rect x="434" y="30" width="45" height="26" rx="3" fill="rgba(79,110,247,.15)" stroke="#4f6ef7" stroke-width="1"/>
+      <text x="456" y="47" text-anchor="middle" fill="#6b84ff" font-size="10">Science</text>
+      <rect x="481" y="30" width="45" height="26" rx="3" fill="rgba(79,110,247,.15)" stroke="#4f6ef7" stroke-width="1"/>
+      <text x="503" y="47" text-anchor="middle" fill="#6b84ff" font-size="10">English</text>
+      <!-- data row -->
+      <rect x="330" y="58" width="55" height="26" rx="3" fill="#1a1e35" stroke="#2a2f50" stroke-width="1"/>
+      <text x="357" y="75" text-anchor="middle" fill="#f0c24b" font-size="10">'A'</text>
+      <rect x="387" y="58" width="45" height="26" rx="3" fill="#1a1e35" stroke="#2a2f50" stroke-width="1"/>
+      <text x="409" y="75" text-anchor="middle" fill="#34d399" font-size="10">80.6</text>
+      <rect x="434" y="58" width="45" height="26" rx="3" fill="#1a1e35" stroke="#2a2f50" stroke-width="1"/>
+      <text x="456" y="75" text-anchor="middle" fill="#34d399" font-size="10">82.6</text>
+      <rect x="481" y="58" width="45" height="26" rx="3" fill="#1a1e35" stroke="#2a2f50" stroke-width="1"/>
+      <text x="503" y="75" text-anchor="middle" fill="#34d399" font-size="10">72.2</text>
+      <!-- dtypes -->
+      <text x="330" y="105" fill="#34d399" font-size="10">Section: str · Maths/Sci/Eng: float64</text>
+      <!-- works -->
+      <rect x="330" y="115" width="200" height="26" rx="4" fill="rgba(52,211,153,.08)" stroke="rgba(52,211,153,.2)" stroke-width="1"/>
+      <text x="340" y="132" fill="#34d399" font-size="9">marks['Maths'].mean()  →  70.2  ✓</text>
+    </svg>
+    <figcaption>Add text to a NumPy array → all numbers silently become strings · Pandas keeps each column's dtype independent</figcaption>
+  </figure>
+
+  <div class="two-col">
+    <div>
+      <div class="callout" style="background:var(--red-soft);border-left:3px solid var(--red);">
+        <div class="callout-title" style="color:var(--red);">❌ NumPy — one dtype</div>
+        Add a text column → entire array becomes <code>&lt;U32</code>. <code>results[0,0]</code> is now the string <code>'80.6'</code>. Can't do maths.
+      </div>
+    </div>
+    <div>
+      <div class="callout good">
+        <div class="callout-title">✓ Pandas — one dtype per column</div>
+        Numbers stay <code>float64</code>. Text column stays <code>str</code>. Labels, groups, joins — Pandas handles all of it.
+      </div>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-head"><span class="code-lang">Python — the bridge pattern</span><button class="copy-btn" onclick="cpCode(this)">Copy</button></div>
+    <pre><span style="color:var(--c-kw)">import</span> pandas <span style="color:var(--c-kw)">as</span> pd
+
+cols  = [<span style="color:var(--c-str)">'Maths'</span>, <span style="color:var(--c-str)">'Science'</span>, <span style="color:var(--c-str)">'English'</span>]
+marks = pd.<span style="color:var(--c-bi)">DataFrame</span>(results, columns=cols, index=<span style="color:var(--c-bi)">range</span>(<span style="color:var(--c-num)">1</span>,<span style="color:var(--c-num)">9</span>))
+marks[<span style="color:var(--c-str)">'Section'</span>] = [<span style="color:var(--c-str)">'A'</span>]*<span style="color:var(--c-num)">4</span> + [<span style="color:var(--c-str)">'B'</span>]*<span style="color:var(--c-num)">4</span>   <span style="color:#5a6b90"># text column, no problem</span>
+
+<span style="color:#5a6b90"># pull numbers back for the maths</span>
+marks[<span style="color:var(--c-str)">'Overall'</span>] = marks[cols].<span style="color:var(--c-bi)">to_numpy</span>() <span style="color:var(--c-kw)">@</span> weights
+
+<span style="color:#5a6b90"># Pandas groups, NumPy calculates</span>
+marks.<span style="color:var(--c-bi)">groupby</span>(<span style="color:var(--c-str)">'Section'</span>)[cols].<span style="color:var(--c-bi)">mean</span>().<span style="color:var(--c-bi)">round</span>(<span style="color:var(--c-num)">1</span>)</pre>
+    <div class="out-block">         Maths  Science  English
+Section
+A         66.3     62.3     61.9
+B         74.2     71.4     79.5</div>
+  </div>
+
+  <table class="data-table">
+    <tr><th></th><th>NumPy array</th><th>Pandas DataFrame</th></tr>
+    <tr><td><strong>Data types</strong></td><td>One dtype for the whole array</td><td>One dtype per column</td></tr>
+    <tr><td><strong>Access by</strong></td><td>Position: <code>results[1, 1]</code></td><td>Label: <code>marks.loc[2, 'Science']</code></td></tr>
+    <tr><td><strong>Best at</strong></td><td>Fast maths: <code>@</code>, broadcasting, vectorized ops</td><td>Labels, groups, joins, file I/O</td></tr>
+    <tr><td><strong>Use when</strong></td><td>All numeric, work is calculation</td><td>Mixed types, categories, dates, files</td></tr>
+    <tr><td><strong>Bridge</strong></td><td colspan="2"><code>df[cols].to_numpy()</code> → NumPy → write result back as column</td></tr>
+  </table>
+</div>
+
+<!-- ══ 06: QUIZ ══ -->
+<div class="sec" id="s06">
+  <div class="sec-num">06</div>
+  <h2>Quiz</h2>
+  <p class="sec-sub">Four questions. No time limit.</p>
+
+  <!-- Q1 -->
+  <div class="quiz-block">
+    <div class="quiz-head">
+      <span class="quiz-num">Question 01</span>
+      <span class="quiz-score-display">Copy &amp; View</span>
+    </div>
+    <div class="quiz-body">
+      <div class="quiz-q">What does <code>a</code> print after this code runs?</div>
+      <div class="quiz-code">a = np.array([10, 20, 30, 40])
+v = a[:2]
+v[0] = 99        <span style="color:var(--c-comment)"># edit through slice</span>
+c = a[[0, 1]]
+c[1] = 77        <span style="color:var(--c-comment)"># edit through fancy index</span>
+print(a)</div>
+      <div class="quiz-opts" id="q1">
+        <button class="quiz-opt" onclick="qPick(this,'wrong','q1')">A. [10, 20, 30, 40]</button>
+        <button class="quiz-opt" onclick="qPick(this,'correct','q1')">B. [99, 20, 30, 40]</button>
+        <button class="quiz-opt" onclick="qPick(this,'wrong','q1')">C. [99, 77, 30, 40]</button>
+        <button class="quiz-opt" onclick="qPick(this,'wrong','q1')">D. [10, 77, 30, 40]</button>
+      </div>
+      <div class="quiz-explain" id="q1-ex">
+        <strong>B.</strong> <code>v = a[:2]</code> is a slice → <strong>view</strong>. <code>v[0] = 99</code> writes into <code>a</code> → <code>a[0]</code> becomes 99. <code>c = a[[0,1]]</code> is fancy indexing → <strong>copy</strong>. <code>c[1] = 77</code> only changes <code>c</code>. So <code>a = [99, 20, 30, 40]</code>.
+      </div>
+    </div>
+  </div>
+
+  <!-- Q2 -->
+  <div class="quiz-block">
+    <div class="quiz-head">
+      <span class="quiz-num">Question 02</span>
+      <span class="quiz-score-display">Stacking</span>
+    </div>
+    <div class="quiz-body">
+      <div class="quiz-q">A has shape (3, 4) and B has shape (2, 4). Which call works, and what shape does the result have?</div>
+      <div class="quiz-opts" id="q2">
+        <button class="quiz-opt" onclick="qPick(this,'correct','q2')">A. np.vstack([A, B]) → (5, 4)</button>
+        <button class="quiz-opt" onclick="qPick(this,'wrong','q2')">B. np.hstack([A, B]) → (3, 8)</button>
+        <button class="quiz-opt" onclick="qPick(this,'wrong','q2')">C. np.vstack([A, B]) → (3, 8)</button>
+        <button class="quiz-opt" onclick="qPick(this,'wrong','q2')">D. np.hstack([A, B]) → (5, 4)</button>
+      </div>
+      <div class="quiz-explain" id="q2-ex">
+        <strong>A.</strong> vstack adds rows: 3 + 2 = 5 rows, same 4 columns → (5, 4). hstack needs the same row count (3 ≠ 2) → fails. vstack never changes columns. hstack would need same rows, giving (3, 8) only if both had 3 rows.
+      </div>
+    </div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="quiz-block">
+    <div class="quiz-head">
+      <span class="quiz-num">Question 03</span>
+      <span class="quiz-score-display">Matrix Multiply</span>
+    </div>
+    <div class="quiz-body">
+      <div class="quiz-q">A and B both have shape (8, 3). Which line runs without error, and what shape does it produce?</div>
+      <div class="quiz-opts" id="q3">
+        <button class="quiz-opt" onclick="qPick(this,'wrong','q3')">A. A @ B → (8, 3)</button>
+        <button class="quiz-opt" onclick="qPick(this,'correct','q3')">B. A @ B.T → (8, 8)</button>
+        <button class="quiz-opt" onclick="qPick(this,'wrong','q3')">C. A @ B → (8, 8)</button>
+        <button class="quiz-opt" onclick="qPick(this,'wrong','q3')">D. A * B.T → (8, 8)</button>
+      </div>
+      <div class="quiz-explain" id="q3-ex">
+        <strong>B.</strong> <code>B.T</code> transposes B to shape (3, 8). Then (8, 3) @ (3, 8): inner sizes both 3 → result (8, 8). Option A and C: (8, 3) @ (8, 3) has inner sizes 3 ≠ 8 → ValueError. Option D: element-wise <code>*</code> with shapes (8, 3) and (3, 8) can't broadcast — 3 ≠ 8 on the right.
+      </div>
+    </div>
+  </div>
+
+  <!-- Q4 -->
+  <div class="quiz-block">
+    <div class="quiz-head">
+      <span class="quiz-num">Question 04</span>
+      <span class="quiz-score-display">NumPy vs Pandas</span>
+    </div>
+    <div class="quiz-body">
+      <div class="quiz-q">Riya runs this code. What is <code>mixed[0, 0]</code>?</div>
+      <div class="quiz-code">section = np.array(['A','A','A','A','B','B','B','B'])
+mixed   = np.hstack([section.reshape(8,1), results])
+print(mixed[0, 0])</div>
+      <div class="quiz-opts" id="q4">
+        <button class="quiz-opt" onclick="qPick(this,'wrong','q4')">A. 80.6 (float)</button>
+        <button class="quiz-opt" onclick="qPick(this,'correct','q4')">B. 'A' (string)</button>
+        <button class="quiz-opt" onclick="qPick(this,'wrong','q4')">C. 'A' but results[0,0] stays float</button>
+        <button class="quiz-opt" onclick="qPick(this,'wrong','q4')">D. TypeError</button>
+      </div>
+      <div class="quiz-explain" id="q4-ex">
+        <strong>B.</strong> When NumPy stacks mixed types, the entire array is upcast to <code>&lt;U32</code> (Unicode string). <code>mixed[0, 0]</code> is the string <code>'A'</code>. And <code>mixed[0, 1]</code> is <code>'80.6'</code> — a string, not a float. Maths breaks. Use Pandas instead.
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:28px 0 10px;">
+    <div style="font-size:.78rem;color:var(--text3);margin-bottom:4px;">Up next</div>
+    <div style="font-size:1rem;font-weight:700;color:var(--text);">Data Visualization 1 — Mastering Matplotlib</div>
+    <div style="font-size:.82rem;color:var(--text3);margin-top:4px;">Turning these numbers into charts the principal can actually read.</div>
+  </div>
+</div>
+
+</div><!-- /page -->
+
+<!-- floating button -->
+<a class="live-fab" href="https://numpylive.onrender.com/" target="_blank" rel="noopener">
+  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 8 12 12 14 14"/></svg>
+  NumPy Live
+</a>
+
+<script>
+/* ── syntax highlighter ── */
+(function(){
+  /* already pre-highlighted inline in the HTML */
+})();
+
+/* ── copy code ── */
+function cpCode(btn){
+  const pre = btn.closest('.code-block').querySelector('pre');
+  navigator.clipboard.writeText(pre.textContent).then(()=>{
+    btn.textContent='Copied!'; setTimeout(()=>btn.textContent='Copy',1500);
+  });
+}
+
+/* ══════════════════
+   DEMO 1: Copy vs View
+══════════════════ */
+(function(){
+  const DATA = [80.6, 50.0, 100.0, 34.6, 74.4, 90.6, 34.4, 97.2];
+  let origData = [...DATA];
+  let scratchData = null;
+  let mode = null; // 'assign' | 'copy'
+  let graceApplied = false;
+
+  function render(){
+    const rc = document.getElementById('cv-results');
+    const sc = document.getElementById('cv-scratch');
+    rc.innerHTML=''; sc.innerHTML='';
+    origData.forEach((v,i)=>{
+      const c = document.createElement('div');
+      c.className = 'a-cell ' + (graceApplied && mode==='assign' && v !== DATA[i] ? 'changed' : 'normal');
+      c.innerHTML = `<div class="av">${v}</div><div class="ai">[${i}]</div>`;
+      rc.appendChild(c);
+    });
+    if(scratchData){
+      scratchData.forEach((v,i)=>{
+        const c = document.createElement('div');
+        const changed = v !== origData[i];
+        c.className = 'a-cell ' + (changed ? (mode==='copy' ? 'safe' : 'changed') : 'normal');
+        c.innerHTML = `<div class="av">${v}</div><div class="ai">[${i}]</div>`;
+        sc.appendChild(c);
+      });
+    } else {
+      sc.innerHTML = '<span style="color:var(--text3);font-size:.8rem;">— not set yet —</span>';
+    }
+  }
+
+  window.cvDemo = function(action){
+    const st = document.getElementById('cv-status');
+    if(action==='reset'){
+      origData=[...DATA]; scratchData=null; mode=null; graceApplied=false;
+      st.innerHTML='Choose a method first, then apply grace marks.';
+    } else if(action==='assign'){
+      origData=[...DATA]; scratchData=[...DATA]; mode='assign'; graceApplied=false;
+      st.innerHTML='<span class="bad">scratch = results — same array! Both point to identical data.</span> Now apply grace marks.';
+    } else if(action==='copy'){
+      origData=[...DATA]; scratchData=[...DATA]; mode='copy'; graceApplied=false;
+      st.innerHTML='<span class="ok">scratch = results.copy() — independent copy created.</span> Now apply grace marks.';
+    } else if(action==='apply'){
+      if(!mode){ st.innerHTML='<span class="bad">Choose assign or copy first.</span>'; return; }
+      if(graceApplied){ st.innerHTML='<span class="bad">Already applied.</span>'; return; }
+      graceApplied = true;
+      scratchData = scratchData.map(v => v < 35 ? +(v+5).toFixed(1) : v);
+      if(mode==='assign'){
+        origData = [...scratchData];
+        st.innerHTML='<span class="bad">Official marksheet changed! This is the bug that sent 40 wrong report cards.</span> np.shares_memory() → True';
+      } else {
+        st.innerHTML='<span class="ok">Grace marks on scratch only. Official marksheet untouched.</span> np.shares_memory() → False';
+      }
+    }
+    render();
+  };
+  render();
+})();
+
+/* ══════════════════
+   DEMO 2: Stacking
+══════════════════ */
+(function(){
+  const SA = [[80.6,82.6,72.2],[50.0,31.4,55.8],[100.0,93.8,91.2],[34.6,41.4,28.4]];
+  const SB = [[74.4,68.4,67.2],[90.6,81.4,91.2],[34.4,47.2,61.8],[97.2,88.8,97.8]];
+
+  function renderGrid(data, step){
+    const vis = document.getElementById('stack-vis');
+    if(step===0){
+      vis.innerHTML=`
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="stack-arr"><div class="stack-arr-name">sec_a (4×3)</div>
+          ${SA.map(r=>`<div class="stack-row">${r.map(v=>`<div class="stack-cell">${v}</div>`).join('')}</div>`).join('')}
+        </div>
+        <div class="stack-arr"><div class="stack-arr-name">sec_b (4×3)</div>
+          ${SB.map(r=>`<div class="stack-row">${r.map(v=>`<div class="stack-cell">${v}</div>`).join('')}</div>`).join('')}
+        </div>
+      </div>`;
+      return;
+    }
+    const master = [...SA,...SB];
+    const totals = master.map(r=>+r.reduce((a,b)=>a+b,0).toFixed(1));
+    const sheet = master.map((r,i)=>[...r,totals[i]]);
+    const avg = [0,1,2,3].map(c=>+(sheet.reduce((a,r)=>a+r[c],0)/8).toFixed(1));
+    const cols = ['Maths','Science','English','Total'];
+    const headers = step>=2;
+    let html = '';
+    if(step>=1){
+      html += `<div class="stack-arr"><div class="stack-arr-name">master (8×${step>=2?4:3}) <span class="shape-badge">(${step>=3?9:8}, ${step>=2?4:3})</span></div>`;
+      if(headers) html+=`<div class="stack-row">${cols.slice(0,step>=2?4:3).map(c=>`<div class="stack-cell" style="background:var(--surface3);color:var(--text3);font-size:.68rem">${c}</div>`).join('')}</div>`;
+      master.forEach((r,i)=>{
+        const row = step>=2 ? [...r, totals[i]] : r;
+        html+=`<div class="stack-row">${row.map((v,ci)=>{
+          let cls = i<4 ? 'from-a' : 'from-b';
+          if(step>=2 && ci===3) cls='total-col';
+          return `<div class="stack-cell ${cls}">${v}</div>`;
+        }).join('')}</div>`;
+      });
+      if(step>=3){
+        html+=`<div class="stack-row">${avg.map(v=>`<div class="stack-cell avg-row">${v}</div>`).join('')}</div>`;
+      }
+      html+=`</div>`;
+    }
+    vis.innerHTML=html;
+  }
+
+  window.stackStep = function(step){
+    const st = document.getElementById('stack-status');
+    const msgs = [
+      'Start with step 1 →',
+      'np.vstack([sec_a, sec_b]) → (8, 3). Blue = Section A, Purple = Section B.',
+      'np.hstack([master, totals.reshape(8,1)]) → (8, 4). Green column = row totals.',
+      'np.vstack([sheet, avg]) → (9, 4). Yellow row = class averages.'
+    ];
+    st.textContent = msgs[step];
+    renderGrid(null, step);
+  };
+  renderGrid(null, 0);
+})();
+
+/* ══════════════════
+   DEMO 3: Split views
+══════════════════ */
+(function(){
+  let masterVal = 80.6;
+  let secVal = 80.6;
+  let mode = null;
+
+  function render(){
+    const mv = document.getElementById('split-master-val');
+    const sv = document.getElementById('split-sec-val');
+    mv.textContent = masterVal;
+    sv.textContent = secVal;
+    mv.style.color = masterVal !== 80.6 ? 'var(--red)' : 'var(--green)';
+    sv.style.color = 'var(--text)';
+  }
+
+  window.splitDemo = function(action){
+    const st = document.getElementById('split-status');
+    if(action==='reset'){
+      masterVal=80.6; secVal=80.6; mode=null;
+      st.textContent='Run vsplit, then edit the piece — watch what happens to master.';
+    } else if(action==='vsplit'){
+      mode='view'; secVal=masterVal;
+      st.innerHTML='<span style="color:var(--yellow)">sec_a2 is a VIEW — it shares data with master. Now edit it.</span>';
+    } else if(action==='copy'){
+      mode='copy'; secVal=masterVal;
+      st.innerHTML='<span class="ok">sec_a2.copy() — independent. Editing it won\'t affect master.</span>';
+    } else if(action==='edit'){
+      if(!mode){ st.innerHTML='<span class="bad">Run vsplit first.</span>'; return; }
+      secVal=0;
+      if(mode==='view'){ masterVal=0; st.innerHTML='<span class="bad">master[0,0] changed to 0! Split piece was a view.</span>'; }
+      else { st.innerHTML='<span class="ok">master[0,0] still 80.6. The .copy() made it independent.</span>'; }
+    }
+    render();
+  };
+  render();
+})();
+
+/* ══════════════════
+   Weight Calculator
+══════════════════ */
+function wcSlider(sub){
+  const pct = +document.getElementById('sl-'+sub).value;
+  document.getElementById('pct-'+sub).textContent = pct+'%';
+}
+function wcCalc(){
+  const m = +document.getElementById('wc-m').value||0;
+  const s = +document.getElementById('wc-s').value||0;
+  const e = +document.getElementById('wc-e').value||0;
+  const wm = +document.getElementById('sl-m').value/100;
+  const ws = +document.getElementById('sl-s').value/100;
+  const we = +document.getElementById('sl-e').value/100;
+  const total = m*wm + s*ws + e*we;
+  const pctSum = Math.round((wm+ws+we)*100);
+  const el = document.getElementById('wc-total');
+  const vd = document.getElementById('wc-verdict');
+  const warn = document.getElementById('wc-warn');
+  el.textContent = total.toFixed(2);
+  el.className = 'wc-total' + (total>=50?'':total>=35?' warn-score':' fail-score');
+  vd.textContent = total>=35?'Pass':'Fail';
+  vd.className = 'wc-verdict ' + (total>=35?'pass':'fail');
+  warn.style.display = pctSum!==100?'inline':'none';
+  document.getElementById('wc-formula').textContent =
+    `${m}×${(wm*100).toFixed(0)}% + ${s}×${(ws*100).toFixed(0)}% + ${e}×${(we*100).toFixed(0)}% = ${total.toFixed(2)}`;
+}
+wcCalc();
+
+/* ══════════════════
+   Shape Checker
+══════════════════ */
+function shapeCheck(){
+  const am=+document.getElementById('sh-am').value;
+  const ak=+document.getElementById('sh-ak').value;
+  const bk=+document.getElementById('sh-bk').value;
+  const bn=+document.getElementById('sh-bn').value;
+  const r=document.getElementById('shape-result');
+  if(!am||!ak||!bk||!bn){r.className='shape-result empty';r.textContent='Enter all four values.';return;}
+  if(ak===bk){
+    r.className='shape-result ok';
+    r.innerHTML=`✓ &nbsp; (${am},<span style="color:var(--red)">${ak}</span>) @ (<span style="color:var(--red)">${bk}</span>,${bn}) → <strong>(${am}, ${bn})</strong> &nbsp; inner ${ak}=${bk} ✓`;
+  } else {
+    r.className='shape-result err';
+    r.innerHTML=`✗ &nbsp; (${am},<span style="color:var(--red)">${ak}</span>) @ (<span style="color:var(--red)">${bk}</span>,${bn}) → <strong>ValueError</strong> &nbsp; inner ${ak} ≠ ${bk}`;
+  }
+}
+
+/* ══════════════════
+   Quiz
+══════════════════ */
+function qPick(btn, verdict, qid){
+  const block = document.getElementById(qid);
+  if(block.dataset.done) return;
+  block.dataset.done='1';
+  block.querySelectorAll('.quiz-opt').forEach(b=>b.disabled=true);
+  btn.classList.add(verdict);
+  if(verdict==='wrong'){
+    block.querySelectorAll('.quiz-opt').forEach(b=>{
+      if(b.onclick.toString().includes("'correct'")) b.classList.add('correct');
+    });
+  }
+  document.getElementById(qid+'-ex').classList.add('show');
+}
+</script>
+</body>
+</html>
